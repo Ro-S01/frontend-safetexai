@@ -1,0 +1,29 @@
+{
+    "reportes": [
+        { "reporteId": 1, "fecha": "04/05/25 17:30:41", "reporte": "RP1045", "tipoDefecto": "teñido", "camara": "CAM001", "area": "A1" },
+        { "reporteId": 2, "fecha": "04/05/25 14:04:12", "reporte": "RP1044", "tipoDefecto": "agujero", "camara": "CAM005", "area": "B1" },
+        { "reporteId": 3, "fecha": "04/05/25 11:50:34", "reporte": "RP1043", "tipoDefecto": "linea", "camara": "CAM003", "area": "A2" },
+        { "reporteId": 4, "fecha": "03/05/25 16:21:00", "reporte": "RP1042", "tipoDefecto": "linea", "camara": "CAM001", "area": "A1" },
+        { "reporteId": 5, "fecha": "03/05/25 09:30:00", "reporte": "RP1041", "tipoDefecto": "teñido", "camara": "CAM002", "area": "A1" }
+    ],
+    
+    "camaras": [
+        { "camaraId": 1, "camara": "CAM001", "area": "A1", "cinta": "CNT01", "estado": "Activo" },
+        { "camaraId": 2, "camara": "CAM002", "area": "B1", "cinta": "CNT03", "estado": "Activo" },
+        { "camaraId": 3, "camara": "CAM003", "area": "A2", "cinta": "CNT05", "estado": "Activo" },
+        { "camaraId": 4, "camara": "CAM004", "area": "A3", "cinta": "CNT04", "estado": "Activo" },
+        { "camaraId": 5, "camara": "CAM005", "area": "B2", "cinta": "CNT02", "estado": "Activo" }
+    ],
+
+    "cardData": {
+        "totalReportes": 13,
+        "totalCamActivas": 4,
+        "totalAdvertencias": 8
+    },
+
+    "alertas": [
+        { "camaraId": 1, "camara": "CAM001", "condicion": "Lente sucia", "estado": "Activo" },
+        { "camaraId": 2, "camara": "CAM002", "condicion": "Dañado", "estado": "Activo" },
+        { "camaraId": 3, "camara": "CAM003", "condicion": "Desconectado", "estado": "Inactivo" }
+    ]
+}
