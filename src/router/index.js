@@ -12,28 +12,28 @@ const routes = [
   },
   { 
     path: '/home',
-    name: 'home',
+    name: 'Home',
     component: Home 
   },
   { 
     path: '/login',
-    name: 'login',
-    component: Login 
+    name: 'Login',
+    component: Login
   },
   { 
     path: '/camara',
-    name: 'camara',
+    name: 'Camara',
     component: Camara 
   },
   { 
     path: '/camara-detalle/:camaraId',
-    name: 'camaraDetalle',
+    name: 'CamaraDetalle',
     component: CamaraDetalle,
     props: true
   },
   { 
     path: '/reporte',
-    name: 'reporte',
+    name: 'Reporte',
     component: Reporte
   },
 ]
