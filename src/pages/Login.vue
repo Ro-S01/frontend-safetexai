@@ -1,11 +1,11 @@
 <template>
     <v-container class="fill-height login-bg" fluid>
         <v-row>
-            <v-col class="d-flex justify-center">
-                <div class="text-center text-h3" color="white">
+            <v-col class="d-flex flex-column align-center justify-center">
+                <div class="text-center text-h2 text-white mb-10 font-weight-light font-italic">
                     SafeTexAI
                 </div>
-                <v-card class="pa-5 w-33 align-center">
+                <v-card class="pa-5 align-center" max-width="500px" width="80%">
                     <v-card-title class="font-weight-light text-center text-h3 pb-0 pt-5">
                         Iniciar Sesión
                     </v-card-title>
@@ -20,10 +20,10 @@
                             <v-text-field v-model="contrasena">
                             </v-text-field>
 
-                            <v-btn class="mt-2 text-none" size="large" variant="flat" color="black" type="submit">Ingresar</v-btn>
+                            <v-btn class="mt-2 text-none" size="large" variant="flat" color="black" type="submit" to="/home">Ingresar</v-btn>
                          </v-form>
 
-                        <a class="text-h7" href="https://www.google.com">Olvido su contraseña?</a>
+                        <a class="text-h7 font-italic text-decoration-underline text-blue-lighten-2" href="#">Olvido su contraseña?</a>
                     </v-container>
                 </v-card>
             </v-col>
