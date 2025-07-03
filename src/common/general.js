@@ -17,3 +17,23 @@ export function formatDateToPE(date) {
         hour12: false
     });
 };
+
+export function damagesToES(damageType) {
+    var damageInES = '';
+
+    switch (damageType) {
+        case 'line':
+            damageInES = 'Linea';
+            break;
+        case 'stain':
+            damageInES = 'Mancha';
+            break;
+        case 'hole':
+            damageInES = 'Hueco';
+            break;
+        default:
+            damageInES = 'No especificado'
+            break;
+    }
+    return damageInES;
+}

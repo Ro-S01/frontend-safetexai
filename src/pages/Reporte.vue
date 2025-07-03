@@ -98,7 +98,7 @@
                 id: item.id,
                 registro: index + 1,
                 reporteId: item.detection_id,
-                defecto: item.class,
+                defecto: aux.damagesToES(item.class),
                 camara: aux.mainCamera,
                 confidencia: item.confidence,
                 fecha: aux.formatDateToPE(item.created_at)
