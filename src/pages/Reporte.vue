@@ -63,7 +63,7 @@
     import * as aux from '@/common/general.js'
 
     // Combo Box
-    const items = ['TODOS', 'CAM01', 'CAM02', 'CAM03', 'CAM04']
+    const items = ['TODOS', 'CAM01']
     // Data Table Headers
     const headers = [
         { title: 'N°', value: "registro" },
@@ -93,7 +93,7 @@
         loading.value = true
         try {
             const response = await reporteService.getReportePaginado();
-            console.log(response);
+            
             dataList.value = response.map((item, index) => ({
                 id: item.id,
                 registro: index + 1,

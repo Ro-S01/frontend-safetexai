@@ -1,4 +1,8 @@
 export const mainCamera = "CAM01";
+export const inputCapturasDirectorio = "/images/input/";
+export const outputCapturasDirectorio = "/images/output/";
+
+export const frame01 = "frame_001.jpg";
 
 export function formatDateToPE(date) {
     var formatedDate= new Date(date);

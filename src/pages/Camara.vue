@@ -40,7 +40,7 @@
         loading.value = true
         try {
             const response = await camaraService.getCamaraPaginado();
-            // Map to table-friendly format
+
             dataList.value = response.map((item, index) => ({
                 registro: index + 1,
                 camaraId: item.camaraId,
@@ -54,8 +54,7 @@
             loading.value = false
         }
     }
-
-    // Load once component is mounted
+    
     onMounted(() => {
         loadItems()
     })
