@@ -17,7 +17,7 @@
                             </v-text-field>
 
                             <v-card-text class="text-h6 pl-0 pb-1 pt-2">Contraseña</v-card-text>
-                            <v-text-field v-model="contrasena">
+                            <v-text-field v-model="contrasena" type="password">
                             </v-text-field>
 
                             <v-btn class="mt-2 text-none" size="large" variant="flat" color="black" type="submit" to="/home">Ingresar</v-btn>
