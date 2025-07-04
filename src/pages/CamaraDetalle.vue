@@ -7,13 +7,24 @@
 
             <v-container class="pa-4">
                 <v-row row-md-12>
-                    <!-- <v-col cols-8>
+                    <v-col cols-7>
                         <v-img
                             aspect-ratio="16/9"
-                            src="https://cdn.vuetifyjs.com/images/parallax/material.jpg"
+                            src="/images/input/frame_001.jpg"
+                            id="telaCaptura"
+                            class="bounding-box-img"
                         >
+                            <template #default>
+                                <div class="bounding-box-container">
+                                    <div
+                                        v-if="ultimoReporte.boxx1 !== undefined"
+                                        class="bounding-box"
+                                        :style="boundingBoxStyle"
+                                    ></div>
+                                </div>
+                            </template>
                         </v-img>
-                    </v-col> -->
+                    </v-col>
 
                     <v-col cols-12>
                         <v-card-text class="text-h5 font-weight-black pa-0">
@@ -73,11 +84,32 @@
 #txtDefecto {
     border-bottom: 0px;
 }
+
+.bounding-box-img {
+  position: relative;
+  width: 100%;
+  height: auto;
+}
+
+.bounding-box-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.bounding-box {
+  position: absolute;
+  border: 2px solid red;
+  background-color: rgba(255, 0, 0, 0.2);
+}
 </style>
 
 <script setup>
     import { ref, onMounted } from 'vue'
     import { useRoute } from 'vue-router';
+    import { computed } from 'vue';
     import camaraService from '../services/service.camara.js'
     import reporteService from '../services/service.reporte.js'
     import * as aux from '@/common/general.js'
@@ -88,6 +120,28 @@
     const datosCamara = ref({});
     const ultimoReporte = ref({});
     const imageList = ['frame_001.jpg', 'frame_002.jpg'];
+
+    const imageWidth = 640;
+    const imageHeight = 640;
+
+    const boundingBoxStyle = computed(() => {
+        const {
+            boxx1, boxx2,
+            boxy1, boxy2
+        } = ultimoReporte.value;
+
+        if (
+            boxx1 === undefined || boxx2 === undefined ||
+            boxy1 === undefined || boxy2 === undefined
+        ) return {};
+
+        return {
+            left: `${(boxx1 / imageWidth) * 100}%`,
+            top: `${(boxy1 / imageHeight) * 100}%`,
+            width: `${((boxx2 - boxx1) / imageWidth) * 100}%`,
+            height: `${((boxy2 - boxy1) / imageHeight) * 100}%`
+        };
+    });
 
     const loadItems = async () => {
         loading.value = true
@@ -108,32 +162,21 @@
         reporteService.getReportePaginado()
             .then(response => {
                 var ultimo = response[response.length - 1];
+
                 ultimoReporte.value = {
-                    defecto: ultimo.class,
-                    fecha: aux.formatDateToPE(ultimo.created_at)
+                    defecto: aux.damagesToES(ultimo.class),
+                    fecha: aux.formatDateToPE(ultimo.created_at),
+                    boxy1: ultimo.bbox_y1,
+                    boxy2: ultimo.bbox_y2,
+                    boxx1: ultimo.bbox_x1,
+                    boxx2: ultimo.bbox_x2
                 };
             })
         
-        enviarImagen()
+        //enviarImagen()
     }
 
     onMounted(() => {
         loadItems()
     })
-
-    async function enviarImagen() {
-        var capturaInput = await fetch('/images/input/frame_001.jpg');
-        var capturaBlob = await capturaInput.blob();
-
-        const formData = new FormData();
-        formData.append('file', capturaBlob, 'frame_001.jpg');
-
-        reporteService.enviarCaptura(formData)
-            .then(response => {
-                console.log('recibio output', response);
-            })
-            .catch(error => {
-                console.log('enviarCaptura', error);
-            });
-    }
 </script>

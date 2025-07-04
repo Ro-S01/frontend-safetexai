@@ -103,8 +103,7 @@
         { title: 'Estado', value: "estado" }
     ];
     const loadItems = (options) => {
-        //console.log("Table options changed:", options);
-        // You can add pagination, sorting logic here
+        
     };
 
     const dataList = ref([]);
@@ -140,8 +139,7 @@
             loading.value = false
         }
     }
-
-    // Load once component is mounted
+    
     onMounted(() => {
         loadEstados();
         loadCards();

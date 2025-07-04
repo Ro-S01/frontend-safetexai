@@ -6,7 +6,7 @@ var camaraService = {
             .then(res => res.json())
             .then(res => res)
             .catch(err => err);
-        console.log(process.env.DEV_API_URL);
+        
         if (data.messages !== undefined) return Promise.reject(data);
         else return Promise.resolve(data);
     },
