@@ -8,11 +8,7 @@
     ],
     
     "camaras": [
-        { "camaraId": 1, "camara": "CAM001", "area": "A1", "cinta": "CNT01", "estado": "Activo" },
-        { "camaraId": 2, "camara": "CAM002", "area": "B1", "cinta": "CNT03", "estado": "Activo" },
-        { "camaraId": 3, "camara": "CAM003", "area": "A2", "cinta": "CNT05", "estado": "Activo" },
-        { "camaraId": 4, "camara": "CAM004", "area": "A3", "cinta": "CNT04", "estado": "Activo" },
-        { "camaraId": 5, "camara": "CAM005", "area": "B2", "cinta": "CNT02", "estado": "Activo" }
+        { "camaraId": 1, "camara": "CAM001", "area": "A1", "cinta": "CNT01", "estado": "Activo" }
     ],
 
     "cardData": {
@@ -22,8 +18,6 @@
     },
 
     "alertas": [
-        { "camaraId": 1, "camara": "CAM001", "condicion": "Lente sucia", "estado": "Activo" },
-        { "camaraId": 2, "camara": "CAM002", "condicion": "Dañado", "estado": "Activo" },
-        { "camaraId": 3, "camara": "CAM003", "condicion": "Desconectado", "estado": "Inactivo" }
+        { "camaraId": 1, "camara": "CAM001", "condicion": "Lente sucia", "estado": "Activo" }
     ]
 }

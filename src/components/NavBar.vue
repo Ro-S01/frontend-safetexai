@@ -18,7 +18,7 @@
     <template v-slot:append>
       <v-list-item class="mb-5">
         <div class="mt-auto font-italic">
-          <v-btn prepend-icon="mdi-exit-to-app" class="text-red-lighten-1 text-none" variant="text">Cerrar Sesión</v-btn>
+          <v-btn prepend-icon="mdi-exit-to-app" class="text-red-lighten-1 text-none" variant="text" to="/login">Cerrar Sesión</v-btn>
         </div>
       </v-list-item>
     </template>
