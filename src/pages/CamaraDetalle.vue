@@ -31,21 +31,24 @@
                             Cámara
                         </v-card-text>
                         <v-card-text class="text-h5 pa-0 mb-3">
-                            {{datosCamara.camara}}
+                            <!-- {{datosCamara.camara}} -->
+                             CAM001
                         </v-card-text>
 
                         <v-card-text class="text-h5 font-weight-black pa-0 ">
                             Área
                         </v-card-text>
                         <v-card-text class="text-h5 pa-0 mb-3">
-                            {{datosCamara.area}}
+                            <!-- {{datosCamara.area}} -->
+                             A1
                         </v-card-text>
 
                         <v-card-text class="text-h5 font-weight-black pa-0">
                             Cinta 
                         </v-card-text>
                         <v-card-text class="text-h5 pa-0 mb-3">
-                            {{datosCamara.cinta}}
+                            <!-- {{datosCamara.cinta}} -->
+                            CNT01
                         </v-card-text>
 
                         <v-card-text class="text-h5 font-weight-black pa-0">
