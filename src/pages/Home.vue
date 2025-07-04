@@ -24,7 +24,8 @@
                         </v-card-title>
                         <v-card-text class="text-h4 text-black-2 pa-0">
                             <v-icon icon="mdi-clipboard-text-outline" size="tiny" class="pb-1"></v-icon>
-                            {{informeData.totalReportes}}
+                            <!-- {{informeData.totalReportes}} -->
+                             21
                         </v-card-text>          
                     </v-card-item>
                 </v-card>
@@ -42,7 +43,8 @@
                         </v-card-title>
                         <v-card-text class="text-h4 text-black-2 pa-0">
                             <v-icon icon="mdi-camera-outline" size="tiny" class="pb-1"></v-icon>
-                            {{informeData.totalCamActivas}}
+                            <!-- {{informeData.totalCamActivas}} -->
+                             1
                         </v-card-text>          
                     </v-card-item>
                 </v-card>
@@ -60,7 +62,8 @@
                         </v-card-title>
                         <v-card-text class="text-h4 text-black-2 pa-0">
                             <v-icon icon="mdi-alert-outline" size="tiny" class="pb-2"></v-icon>
-                            {{informeData.totalAdvertencias}}
+                            <!-- {{informeData.totalAdvertencias}} -->
+                             0
                         </v-card-text>          
                     </v-card-item>
                 </v-card>
@@ -79,7 +82,6 @@
                         :headers="headers" 
                         :items="dataList" 
                         :loading="loading" 
-                        @update:options="loadItems"
                         >
                             <template v-slot:item.detalle="{ item }">
                             </template>
@@ -106,42 +108,47 @@
         
     };
 
-    const dataList = ref([]);
+    const dataList = ref([
+        { registro: 1, camara: "CAM001", condicion: "Buena", estado: "Activo" }
+    ]);
     const informeData = ref(null);
     const loading = ref(false);
 
     const loadEstados = async () => {
         loading.value = true
-        try {
-            const response = await homeService.getEstados();
-            dataList.value = response.map((item, index) => ({
-                registro: index + 1,
-                camara: item.camara,
-                condicion: item.condicion,
-                estado: item.estado
-            }));
-        } catch (error) {
-            console.error("Error fetching data:", error)
-        } finally {
-            loading.value = false
-        }
+        datalist.value = [{ "camaraId": 1, "camara": "CAM001", "condicion": "Buena", "estado": "Activo" }]
+        // try {
+            
+        //     const response = await homeService.getEstados();
+        //     dataList.value = response.map((item, index) => ({
+        //         registro: index + 1,
+        //         camara: item.camara,
+        //         condicion: item.condicion,
+        //         estado: item.estado
+        //     }));
+        // } catch (error) {
+        //     console.error("Error fetching data:", error)
+        // } finally {
+        //     loading.value = false
+        // }
     }
 
     const loadCards = async () => {
-        loading.value = true;
-        try {
-            const response = await homeService.getInformes();
-            informeData.value = response;
-            //console.log(response);
-        } catch (error) {
-            console.error("Error fetching data:", error)
-        } finally {
-            loading.value = false
-        }
+        //informeData = { "camaraId": 1, "camara": "CAM001", "condicion": "Buena", "estado": "Activo" }
+        // loading.value = true;
+        // try {
+        //     const response = await homeService.getInformes();
+        //     informeData.value = response;
+        //     //console.log(response);
+        // } catch (error) {
+        //     console.error("Error fetching data:", error)
+        // } finally {
+        //     loading.value = false
+        // }
     }
     
     onMounted(() => {
-        loadEstados();
-        loadCards();
+        //loadEstados();
+        //loadCards();
     })
 </script>

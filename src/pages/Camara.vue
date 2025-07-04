@@ -34,29 +34,31 @@
         { title: 'Detalle', value: "detalle" },
     ];
 
-    const dataList = ref([])
+    const dataList = ref([
+        { registro: 1, camara: "CAM001", area: "A1", cinta: "CNT01", estado: "Activo" }
+    ]);
     const loading = ref(false)
     const loadItems = async () => {
-        loading.value = true
-        try {
-            const response = await camaraService.getCamaraPaginado();
+        // loading.value = true
+        // try {
+        //     const response = await camaraService.getCamaraPaginado();
 
-            dataList.value = response.map((item, index) => ({
-                registro: index + 1,
-                camaraId: item.camaraId,
-                camara: item.camara,
-                area: item.area,
-                estado: item.estado,
-            }))
-        } catch (error) {
-            console.error("Error fetching data:", error)
-        } finally {
-            loading.value = false
-        }
+        //     dataList.value = response.map((item, index) => ({
+        //         registro: index + 1,
+        //         camaraId: item.camaraId,
+        //         camara: item.camara,
+        //         area: item.area,
+        //         estado: item.estado,
+        //     }))
+        // } catch (error) {
+        //     console.error("Error fetching data:", error)
+        // } finally {
+        //     loading.value = false
+        // }
     }
     
     onMounted(() => {
-        loadItems()
+        //loadItems()
     })
 
 </script>
