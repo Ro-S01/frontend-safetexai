@@ -16,7 +16,6 @@
                 <v-card
                     class="mx-auto"
                     max-width="100%"
-                    v-if="informeData"
                 >
                     <v-card-item>
                         <v-card-title class="font-weight-bold">
@@ -34,8 +33,7 @@
             <v-col cols-md-4>
                 <v-card
                     class="mx-auto"
-                    max-width="100%"
-                    v-if="informeData"        
+                    max-width="100%"       
                 >                 
                     <v-card-item>
                         <v-card-title class="font-weight-bold">
@@ -54,7 +52,6 @@
                 <v-card
                     class="mx-auto"
                     max-width="100%"
-                    v-if="informeData"
                 >
                     <v-card-item>
                         <v-card-title class="font-weight-bold">
