@@ -200,7 +200,7 @@
         }
     };
 
-    async function startProcess() {
+    function startProcess() {
         loadingStart.value = true;
 
         const request = new URLSearchParams({
