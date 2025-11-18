@@ -26,7 +26,7 @@
                         </v-img>
                     </v-col>
 
-                    <v-col cols-12>
+                    <v-col cols-12 md="5">
                         <v-card-text class="text-h5 font-weight-black pa-0">
                             Cámara
                         </v-card-text>
@@ -61,7 +61,45 @@
                             Fecha y Hora: {{ultimoReporte.fecha}}
                         </v-card-text>
 
-                        <v-spacer></v-spacer>
+                        <v-divider class="my-3"></v-divider>
+                        <v-card-text class="text-h5 font-weight-black pa-0 mb-2">
+                        Control del Sistema
+                        </v-card-text>
+
+                        <v-row>
+                            <v-col cols="6">
+                                <v-text-field v-model="params.partida" label="Partida" type="number" />
+                            </v-col>
+                            <v-col cols="6">
+                                <v-text-field v-model="params.roll" label="Rollo" type="number" />
+                            </v-col>
+                            <v-col cols="6">
+                                <v-text-field v-model="params.interval" label="Intervalo (s)" type="number" step="0.1" />
+                            </v-col>
+                            <v-col cols="6">
+                                <v-text-field v-model="params.threshold" label="Umbral" type="number" step="0.1" />
+                            </v-col>
+
+                            <v-col cols="6">
+                                <v-text-field v-model="params.width" label="Ancho (px)" type="number" />
+                            </v-col>
+                            <v-col cols="6">
+                                <v-text-field v-model="params.height" label="Alto (px)" type="number" />
+                            </v-col>
+                        </v-row>
+
+                        <v-row class="mt-1">
+                            <v-col cols="12" class="d-flex justify-space-between">
+                                <v-btn color="green" @click="startProcess" :loading="loadingStart">Iniciar</v-btn>
+                                <v-btn color="red" @click="stopProcess" :loading="loadingStop">Detener</v-btn>
+                                <v-btn color="blue" @click="checkStatus" :loading="loadingStatus">Estado</v-btn>
+                            </v-col>
+                        </v-row>
+
+                        <v-alert v-if="statusMessage" class="mt-3" :type="statusColor" variant="tonal">
+                            {{ statusMessage }}
+                        </v-alert>
+
                         <v-card-actions class="justify-content-end pa-0">
                             <v-btn size="large" variant="outlined" color="black" class="text-none" to="/camara">Regresar</v-btn>
                             <v-btn size="large" variant="flat" color="black" class="text-none" to="/reporte">Ver Reporte</v-btn>
@@ -70,10 +108,6 @@
                 </v-row>       
             </v-container>
         </v-card>
-
-        <div class="d-none">
-            <img v-for="img in imageList" :key="img" :src="`public/images/input/${img}`" :alt="img" />
-        </div>
     </v-container>
 </template>
 
@@ -124,60 +158,169 @@
     const ultimoReporte = ref({});
     const imageList = ['frame_001.jpg', 'frame_002.jpg'];
 
-    const imageWidth = 640;
-    const imageHeight = 640;
-
     const boundingBoxStyle = computed(() => {
-        const {
-            boxx1, boxx2,
-            boxy1, boxy2
-        } = ultimoReporte.value;
+        const { boxx1, boxx2, boxy1, boxy2 } = ultimoReporte.value;
 
-        if (
-            boxx1 === undefined || boxx2 === undefined ||
-            boxy1 === undefined || boxy2 === undefined
-        ) return {};
-
-        return {
-            left: `${(boxx1 / imageWidth) * 100}%`,
-            top: `${(boxy1 / imageHeight) * 100}%`,
-            width: `${((boxx2 - boxx1) / imageWidth) * 100}%`,
-            height: `${((boxy2 - boxy1) / imageHeight) * 100}%`
-        };
+        if (boxx1 === undefined || boxx2 === undefined || boxy1 === undefined ||
+            boxy2 === undefined) {
+            return {};
+        }
+        else {
+            return {
+                left: `${(boxx1 / imageWidth) * 100}%`,
+                top: `${(boxy1 / imageHeight) * 100}%`,
+                width: `${((boxx2 - boxx1) / imageWidth) * 100}%`,
+                height: `${((boxy2 - boxy1) / imageHeight) * 100}%`,
+            };
+        }
+        
     });
 
     const loadItems = async () => {
-        loading.value = true
-        
-        camaraService.getCamaraPorId(camaraId)
-            .then(response => {
-                datosCamara.value = {
-                    camara: response.at(0).camara,
-                    area: response.at(0).area,
-                    cinta: response.at(0).cinta
-                }
-                loading.value = false;
-            })
-            .catch(err => {
-                console.log(err);
-            });
-        
-        reporteService.getReportePaginado()
-            .then(response => {
-                var ultimo = response[response.length - 1];
+        loading.value = true;
+        try {
+            const camara = await camaraService.getCamaraPorId(camaraId);
+            datosCamara.value = camara?.[0] || {};
 
-                ultimoReporte.value = {
-                    defecto: aux.damagesToES(ultimo.class),
-                    fecha: aux.formatDateToPE(ultimo.created_at),
-                    boxy1: ultimo.bbox_y1,
-                    boxy2: ultimo.bbox_y2,
-                    boxx1: ultimo.bbox_x1,
-                    boxx2: ultimo.bbox_x2
-                };
+            const response = await reporteService.getReportePaginado();
+            const ultimo = response.at(-1);
+
+            ultimoReporte.value = {
+                defecto: aux.damagesToES(ultimo.class),
+                fecha: aux.formatDateToPE(ultimo.created_at),
+                boxy1: ultimo.bbox_y1,
+                boxy2: ultimo.bbox_y2,
+                boxx1: ultimo.bbox_x1,
+                boxx2: ultimo.bbox_x2,
+            };
+        } catch (err) {
+            console.error(err);
+        } finally {
+            loading.value = false;
+        }
+    };
+
+    async function startProcess() {
+        loadingStart.value = true;
+
+        const request = new URLSearchParams({
+            partida: params.value.partida,
+            roll: params.value.roll,
+            interval: params.value.interval,
+            threshold: params.value.threshold,
+            width: params.value.width,
+            height: params.value.height,
+        });
+
+        camaraService.startProcess(request)
+            .then(response => {
+                loadingStart.value = false;
+
+                statusMessage.value = `Proceso iniciado: ${response.status}`;
+                statusColor.value = "success";
             })
-        
-        //enviarImagen()
+            .catch(error => {
+                loadingStart.value = false;
+
+                statusMessage.value = "Error al iniciar el proceso";
+                statusColor.value = "error";
+                console.warn(error);
+            });
     }
+
+    function stopProcess() {
+        loadingStop.value = true;
+        camaraService.stopProcess()
+            .then(response => {
+                statusMessage.value = `Proceso detenido: ${response.status}`;
+                statusColor.value = "warning";
+                loadingStop.value = false;
+            })
+            .catch(error => {
+                statusMessage.value = "Error al detener el proceso";
+                statusColor.value = "error";
+                loadingStop.value = false;
+                console.warn(error);
+            });
+    }
+
+    function checkStatus() {
+        loadingStatus.value = true;
+        camaraService.checkStatus()
+            .then(response => {
+                if (response.status === 'running') {
+                    statusMessage.value = `En ejecución (PID: ${data.pid})`;
+                    statusColor.value = 'info';
+                }              
+                else {
+                    statusMessage.value = 'Detenido';
+                    statusColor.value = 'grey';
+                }
+                loadingStatus.value = false;
+            })
+            .catch(error => {
+                loadingStatus.value = false;
+
+                statusMessage.value = "No se pudo obtener el estado";
+                statusColor.value = "error";
+                console.warn(error);
+            });
+    }
+
+    // const imageWidth = 640;
+    // const imageHeight = 640;
+
+    // const boundingBoxStyle = computed(() => {
+    //     const {
+    //         boxx1, boxx2,
+    //         boxy1, boxy2
+    //     } = ultimoReporte.value;
+
+    //     if (
+    //         boxx1 === undefined || boxx2 === undefined ||
+    //         boxy1 === undefined || boxy2 === undefined
+    //     ) return {};
+
+    //     return {
+    //         left: `${(boxx1 / imageWidth) * 100}%`,
+    //         top: `${(boxy1 / imageHeight) * 100}%`,
+    //         width: `${((boxx2 - boxx1) / imageWidth) * 100}%`,
+    //         height: `${((boxy2 - boxy1) / imageHeight) * 100}%`
+    //     };
+    // });
+
+    // const loadItems = async () => {
+    //     loading.value = true
+        
+    //     camaraService.getCamaraPorId(camaraId)
+    //         .then(response => {
+    //             datosCamara.value = {
+    //                 camara: response.at(0).camara,
+    //                 area: response.at(0).area,
+    //                 cinta: response.at(0).cinta
+    //             }
+    //             loading.value = false;
+    //         })
+    //         .catch(err => {
+    //             console.log(err);
+    //         });
+        
+    //     reporteService.getReportePaginado()
+    //         .then(response => {
+    //             var ultimo = response[response.length - 1];
+
+    //             ultimoReporte.value = {
+    //                 defecto: aux.damagesToES(ultimo.class),
+    //                 fecha: aux.formatDateToPE(ultimo.created_at),
+    //                 boxy1: ultimo.bbox_y1,
+    //                 boxy2: ultimo.bbox_y2,
+    //                 boxx1: ultimo.bbox_x1,
+    //                 boxx2: ultimo.bbox_x2
+    //             };
+    //         })
+        
+    //     //enviarImagen()
+    // }
 
     onMounted(() => {
         loadItems()
