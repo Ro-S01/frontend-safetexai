@@ -202,58 +202,69 @@
 
     async function startProcess() {
         loadingStart.value = true;
-        try {
-            const query = new URLSearchParams({
+
+        const request = new URLSearchParams({
             partida: params.value.partida,
             roll: params.value.roll,
             interval: params.value.interval,
             threshold: params.value.threshold,
             width: params.value.width,
             height: params.value.height,
+        });
+
+        camaraService.startProcess(request)
+            .then(response => {
+                loadingStart.value = false;
+
+                statusMessage.value = `Proceso iniciado: ${response.status}`;
+                statusColor.value = "success";
+            })
+            .catch(error => {
+                loadingStart.value = false;
+
+                statusMessage.value = "Error al iniciar el proceso";
+                statusColor.value = "error";
+                console.warn(error);
             });
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/start?${query.toString()}`, { method: "POST" });
-            const data = await res.json();
-            statusMessage.value = `Proceso iniciado: ${data.status}`;
-            statusColor.value = "success";
-        } catch {
-            statusMessage.value = "Error al iniciar el proceso";
-            statusColor.value = "error";
-        } finally {
-            loadingStart.value = false;
-        }
     }
 
-    async function stopProcess() {
+    function stopProcess() {
         loadingStop.value = true;
-        try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/stop`, { method: "POST" });
-            const data = await res.json();
-            statusMessage.value = `Proceso detenido: ${data.status}`;
-            statusColor.value = "warning";
-        } catch {
-            statusMessage.value = "Error al detener el proceso";
-            statusColor.value = "error";
-        } finally {
-            loadingStop.value = false;
-        }
+        camaraService.stopProcess()
+            .then(response => {
+                statusMessage.value = `Proceso detenido: ${response.status}`;
+                statusColor.value = "warning";
+                loadingStop.value = false;
+            })
+            .catch(error => {
+                statusMessage.value = "Error al detener el proceso";
+                statusColor.value = "error";
+                loadingStop.value = false;
+                console.warn(error);
+            });
     }
 
-    async function checkStatus() {
+    function checkStatus() {
         loadingStatus.value = true;
-        try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/status`);
-            const data = await res.json();
-            statusMessage.value =
-            data.status === "running"
-                ? `En ejecución (PID: ${data.pid})`
-                : "Detenido";
-            statusColor.value = data.status === "running" ? "info" : "grey";
-        } catch {
-            statusMessage.value = "No se pudo obtener el estado";
-            statusColor.value = "error";
-        } finally {
-            loadingStatus.value = false;
-        }
+        camaraService.checkStatus()
+            .then(response => {
+                if (response.status === 'running') {
+                    statusMessage.value = `En ejecución (PID: ${data.pid})`;
+                    statusColor.value = 'info';
+                }              
+                else {
+                    statusMessage.value = 'Detenido';
+                    statusColor.value = 'grey';
+                }
+                loadingStatus.value = false;
+            })
+            .catch(error => {
+                loadingStatus.value = false;
+
+                statusMessage.value = "No se pudo obtener el estado";
+                statusColor.value = "error";
+                console.warn(error);
+            });
     }
 
     // const imageWidth = 640;
