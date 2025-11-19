@@ -1,133 +1,114 @@
 <template>
-    <v-container>
-        <v-card class="pa-5">
-            <template v-slot:title>
-                <span class="font-weight-black text-h4">Información de la Cámara</span>
-            </template>
+  <v-container>
+    <v-card class="pa-5">
+      <template #title>
+        <span class="font-weight-black text-h4">Información de la Cámara</span>
+      </template>
 
-            <v-container class="pa-4">
-                <v-row row-md-12>
-                    <v-col cols-7>
-                        <v-img
-                            aspect-ratio="16/9"
-                            src="/images/input/frame_001.jpg"
-                            id="telaCaptura"
-                            class="bounding-box-img"
-                        >
-                            <template #default>
-                                <div class="bounding-box-container">
-                                    <div
-                                        v-if="ultimoReporte.boxx1 !== undefined"
-                                        class="bounding-box"
-                                        :style="boundingBoxStyle"
-                                    ></div>
-                                </div>
-                            </template>
-                        </v-img>
-                    </v-col>
+      <v-container class="pa-4">
+        <v-row>
+          <v-col cols="7">
+            <v-img
+              aspect-ratio="16/9"
+              src="/images/input/frame_001.jpg"
+              id="telaCaptura"
+              class="bounding-box-img"
+            >
+              <template #default>
+                <div class="bounding-box-container">
+                  <div
+                    v-if="ultimoReporte.boxx1 !== undefined"
+                    class="bounding-box"
+                    :style="boundingBoxStyle"
+                  ></div>
+                </div>
+              </template>
+            </v-img>
+          </v-col>
 
-                    <v-col cols-12 md="5">
-                        <v-card-text class="text-h5 font-weight-black pa-0">
-                            Cámara
-                        </v-card-text>
-                        <v-card-text class="text-h5 pa-0 mb-3">
-                            <!-- {{datosCamara.camara}} -->
-                             CAM001
-                        </v-card-text>
+          <v-col cols="12" md="5">
+            <v-card-text class="text-h5 font-weight-black pa-0">Cámara</v-card-text>
+            <v-card-text class="text-h5 pa-0 mb-3">CAM001</v-card-text>
 
-                        <v-card-text class="text-h5 font-weight-black pa-0 ">
-                            Área
-                        </v-card-text>
-                        <v-card-text class="text-h5 pa-0 mb-3">
-                            <!-- {{datosCamara.area}} -->
-                             A1
-                        </v-card-text>
+            <v-card-text class="text-h5 font-weight-black pa-0">Área</v-card-text>
+            <v-card-text class="text-h5 pa-0 mb-3">A1</v-card-text>
 
-                        <v-card-text class="text-h5 font-weight-black pa-0">
-                            Cinta 
-                        </v-card-text>
-                        <v-card-text class="text-h5 pa-0 mb-3">
-                            <!-- {{datosCamara.cinta}} -->
-                            CNT01
-                        </v-card-text>
+            <v-card-text class="text-h5 font-weight-black pa-0">Cinta</v-card-text>
+            <v-card-text class="text-h5 pa-0 mb-3">CNT01</v-card-text>
 
-                        <v-card-text class="text-h5 font-weight-black pa-0">
-                            Último reporte
-                        </v-card-text>
-                        <v-card-text class="text-h5 pt-2 pb-2 pr-3 report-border" id="txtDefecto">
-                            Defecto: {{ultimoReporte.defecto}}
-                        </v-card-text>
-                        <v-card-text class="text-h5 pt-2 pb-2 pr-3 mb-3 report-border">
-                            Fecha y Hora: {{ultimoReporte.fecha}}
-                        </v-card-text>
+            <v-card-text class="text-h5 font-weight-black pa-0">Último reporte</v-card-text>
+            <v-card-text class="text-h5 pt-2 pb-2 pr-3 report-border" id="txtDefecto">
+              Defecto: {{ ultimoReporte.defecto }}
+            </v-card-text>
+            <v-card-text class="text-h5 pt-2 pb-2 pr-3 mb-3 report-border">
+              Fecha y Hora: {{ ultimoReporte.fecha }}
+            </v-card-text>
 
-                        <v-divider class="my-3"></v-divider>
-                        <v-card-text class="text-h5 font-weight-black pa-0 mb-2">
-                        Control del Sistema
-                        </v-card-text>
+            <v-divider class="my-3"></v-divider>
+            <v-card-text class="text-h5 font-weight-black pa-0 mb-2">
+              Control del Sistema
+            </v-card-text>
 
-                        <v-row>
-                            <v-col cols="6">
-                                <v-text-field v-model="params.partida" label="Partida" type="number" />
-                            </v-col>
-                            <v-col cols="6">
-                                <v-text-field v-model="params.roll" label="Rollo" type="number" />
-                            </v-col>
-                            <v-col cols="6">
-                                <v-text-field v-model="params.interval" label="Intervalo (s)" type="number" step="0.1" />
-                            </v-col>
-                            <v-col cols="6">
-                                <v-text-field v-model="params.threshold" label="Umbral" type="number" step="0.1" />
-                            </v-col>
+            <v-row>
+              <v-col cols="6">
+                <v-text-field v-model="params.partida" label="Partida" type="number" />
+              </v-col>
+              <v-col cols="6">
+                <v-text-field v-model="params.roll" label="Rollo" type="number" />
+              </v-col>
+              <v-col cols="6">
+                <v-text-field v-model="params.interval" label="Intervalo (s)" type="number" step="0.1" />
+              </v-col>
+              <v-col cols="6">
+                <v-text-field v-model="params.threshold" label="Umbral" type="number" step="0.1" />
+              </v-col>
 
-                            <v-col cols="6">
-                                <v-text-field v-model="params.width" label="Ancho (px)" type="number" />
-                            </v-col>
-                            <v-col cols="6">
-                                <v-text-field v-model="params.height" label="Alto (px)" type="number" />
-                            </v-col>
-                        </v-row>
+              <!-- 🧠 Resolution Controls -->
+              <v-col cols="6">
+                <v-text-field v-model="params.width" label="Ancho (px)" type="number" />
+              </v-col>
+              <v-col cols="6">
+                <v-text-field v-model="params.height" label="Alto (px)" type="number" />
+              </v-col>
+            </v-row>
 
-                        <v-row class="mt-1">
-                            <v-col cols="12" class="d-flex justify-space-between">
-                                <v-btn color="green" @click="startProcess" :loading="loadingStart">Iniciar</v-btn>
-                                <v-btn color="red" @click="stopProcess" :loading="loadingStop">Detener</v-btn>
-                                <v-btn color="blue" @click="checkStatus" :loading="loadingStatus">Estado</v-btn>
-                            </v-col>
-                        </v-row>
+            <v-row class="mt-1">
+              <v-col cols="12" class="d-flex justify-space-between">
+                <v-btn color="green" @click="startProcess" :loading="loadingStart">Iniciar</v-btn>
+                <v-btn color="red" @click="stopProcess" :loading="loadingStop">Detener</v-btn>
+                <v-btn color="blue" @click="checkStatus" :loading="loadingStatus">Estado</v-btn>
+              </v-col>
+            </v-row>
 
-                        <v-alert v-if="statusMessage" class="mt-3" :type="statusColor" variant="tonal">
-                            {{ statusMessage }}
-                        </v-alert>
+            <v-alert v-if="statusMessage" class="mt-3" :type="statusColor" variant="tonal">
+              {{ statusMessage }}
+            </v-alert>
 
-                        <v-card-actions class="justify-content-end pa-0">
-                            <v-btn size="large" variant="outlined" color="black" class="text-none" to="/camara">Regresar</v-btn>
-                            <v-btn size="large" variant="flat" color="black" class="text-none" to="/reporte">Ver Reporte</v-btn>
-                        </v-card-actions>
-                    </v-col>
-                </v-row>       
-            </v-container>
-        </v-card>
-    </v-container>
+            <v-card-actions class="justify-content-end pa-0 mt-4">
+              <v-btn size="large" variant="outlined" color="black" class="text-none" to="/camara">Regresar</v-btn>
+              <v-btn size="large" variant="flat" color="black" class="text-none" to="/reporte">Ver Reporte</v-btn>
+            </v-card-actions>
+          </v-col>
+        </v-row>
+      </v-container>
+    </v-card>
+  </v-container>
 </template>
 
 <style scoped>
 .report-border {
-    border-style: solid;
-    border-width: 2px;
-    border-color: black;
+  border-style: solid;
+  border-width: 2px;
+  border-color: black;
 }
-
 #txtDefecto {
-    border-bottom: 0px;
+  border-bottom: 0px;
 }
-
 .bounding-box-img {
   position: relative;
   width: 100%;
   height: auto;
 }
-
 .bounding-box-container {
   position: absolute;
   top: 0;
@@ -135,7 +116,6 @@
   width: 100%;
   height: 100%;
 }
-
 .bounding-box {
   position: absolute;
   border: 2px solid red;
@@ -144,185 +124,137 @@
 </style>
 
 <script setup>
-    import { ref, onMounted } from 'vue'
-    import { useRoute } from 'vue-router';
-    import { computed } from 'vue';
-    import camaraService from '../services/service.camara.js'
-    import reporteService from '../services/service.reporte.js'
-    import * as aux from '@/common/general.js'
+import { ref, computed, onMounted } from "vue";
+import { useRoute } from "vue-router";
+import camaraService from "../services/service.camara.js";
+import reporteService from "../services/service.reporte.js";
+import * as aux from "@/common/general.js";
 
-    const route = useRoute();
-    const camaraId = route.params.camaraId;
-    const loading = ref(false);
-    const datosCamara = ref({});
-    const ultimoReporte = ref({});
-    const imageList = ['frame_001.jpg', 'frame_002.jpg'];
+const route = useRoute();
+const camaraId = route.params.camaraId;
+const loading = ref(false);
+const datosCamara = ref({});
+const ultimoReporte = ref({});
+const imageList = ["frame_001.jpg", "frame_002.jpg"];
 
-    const boundingBoxStyle = computed(() => {
-        const { boxx1, boxx2, boxy1, boxy2 } = ultimoReporte.value;
+// 🧠 API parameters (includes resolution)
+const params = ref({
+  partida: 1001,
+  roll: 1,
+  interval: 1.0,
+  threshold: 0.5,
+  width: 1920,
+  height: 1080,
+});
 
-        if (boxx1 === undefined || boxx2 === undefined || boxy1 === undefined ||
-            boxy2 === undefined) {
-            return {};
-        }
-        else {
-            return {
-                left: `${(boxx1 / imageWidth) * 100}%`,
-                top: `${(boxy1 / imageHeight) * 100}%`,
-                width: `${((boxx2 - boxx1) / imageWidth) * 100}%`,
-                height: `${((boxy2 - boxy1) / imageHeight) * 100}%`,
-            };
-        }
-        
-    });
+// 🧠 UI state
+const loadingStart = ref(false);
+const loadingStop = ref(false);
+const loadingStatus = ref(false);
+const statusMessage = ref("");
+const statusColor = ref("info");
 
-    const loadItems = async () => {
-        loading.value = true;
-        try {
-            const camara = await camaraService.getCamaraPorId(camaraId);
-            datosCamara.value = camara?.[0] || {};
+const imageWidth = 640;
+const imageHeight = 640;
 
-            const response = await reporteService.getReportePaginado();
-            const ultimo = response.at(-1);
+const boundingBoxStyle = computed(() => {
+  const { boxx1, boxx2, boxy1, boxy2 } = ultimoReporte.value;
+  if (
+    boxx1 === undefined ||
+    boxx2 === undefined ||
+    boxy1 === undefined ||
+    boxy2 === undefined
+  )
+    return {};
+  return {
+    left: `${(boxx1 / imageWidth) * 100}%`,
+    top: `${(boxy1 / imageHeight) * 100}%`,
+    width: `${((boxx2 - boxx1) / imageWidth) * 100}%`,
+    height: `${((boxy2 - boxy1) / imageHeight) * 100}%`,
+  };
+});
 
-            ultimoReporte.value = {
-                defecto: aux.damagesToES(ultimo.class),
-                fecha: aux.formatDateToPE(ultimo.created_at),
-                boxy1: ultimo.bbox_y1,
-                boxy2: ultimo.bbox_y2,
-                boxx1: ultimo.bbox_x1,
-                boxx2: ultimo.bbox_x2,
-            };
-        } catch (err) {
-            console.error(err);
-        } finally {
-            loading.value = false;
-        }
+const loadItems = async () => {
+  loading.value = true;
+  try {
+    const camara = await camaraService.getCamaraPorId(camaraId);
+    datosCamara.value = camara?.[0] || {};
+    const response = await reporteService.getReportePaginado();
+    const ultimo = response.at(-1);
+    ultimoReporte.value = {
+      defecto: aux.damagesToES(ultimo.class),
+      fecha: aux.formatDateToPE(ultimo.created_at),
+      boxy1: ultimo.bbox_y1,
+      boxy2: ultimo.bbox_y2,
+      boxx1: ultimo.bbox_x1,
+      boxx2: ultimo.bbox_x2,
     };
+  } catch (err) {
+    console.error(err);
+  } finally {
+    loading.value = false;
+  }
+};
 
-    function startProcess() {
-        loadingStart.value = true;
+const apiBase = "http://192.168.100.131:8000";
 
-        const request = new URLSearchParams({
-            partida: params.value.partida,
-            roll: params.value.roll,
-            interval: params.value.interval,
-            threshold: params.value.threshold,
-            width: params.value.width,
-            height: params.value.height,
-        });
+async function startProcess() {
+  loadingStart.value = true;
+  try {
+    const query = new URLSearchParams({
+      partida: params.value.partida,
+      roll: params.value.roll,
+      interval: params.value.interval,
+      threshold: params.value.threshold,
+      width: params.value.width,
+      height: params.value.height,
+    });
+    const res = await fetch(`${apiBase}/start?${query.toString()}`, { method: "POST" });
+    const data = await res.json();
+    statusMessage.value = `Proceso iniciado: ${data.status}`;
+    statusColor.value = "success";
+  } catch {
+    statusMessage.value = "Error al iniciar el proceso";
+    statusColor.value = "error";
+  } finally {
+    loadingStart.value = false;
+  }
+}
 
-        camaraService.startProcess(request)
-            .then(response => {
-                loadingStart.value = false;
+async function stopProcess() {
+  loadingStop.value = true;
+  try {
+    const res = await fetch(`${apiBase}/stop`, { method: "POST" });
+    const data = await res.json();
+    statusMessage.value = `Proceso detenido: ${data.status}`;
+    statusColor.value = "warning";
+  } catch {
+    statusMessage.value = "Error al detener el proceso";
+    statusColor.value = "error";
+  } finally {
+    loadingStop.value = false;
+  }
+}
 
-                statusMessage.value = `Proceso iniciado: ${response.status}`;
-                statusColor.value = "success";
-            })
-            .catch(error => {
-                loadingStart.value = false;
+async function checkStatus() {
+  loadingStatus.value = true;
+  try {
+    const res = await fetch(`${apiBase}/status`);
+    const data = await res.json();
+    statusMessage.value =
+      data.status === "running"
+        ? `En ejecución (PID: ${data.pid})`
+        : "Detenido";
+    statusColor.value = data.status === "running" ? "info" : "grey";
+  } catch {
+    statusMessage.value = "No se pudo obtener el estado";
+    statusColor.value = "error";
+  } finally {
+    loadingStatus.value = false;
+  }
+}
 
-                statusMessage.value = "Error al iniciar el proceso";
-                statusColor.value = "error";
-                console.warn(error);
-            });
-    }
-
-    function stopProcess() {
-        loadingStop.value = true;
-        camaraService.stopProcess()
-            .then(response => {
-                statusMessage.value = `Proceso detenido: ${response.status}`;
-                statusColor.value = "warning";
-                loadingStop.value = false;
-            })
-            .catch(error => {
-                statusMessage.value = "Error al detener el proceso";
-                statusColor.value = "error";
-                loadingStop.value = false;
-                console.warn(error);
-            });
-    }
-
-    function checkStatus() {
-        loadingStatus.value = true;
-        camaraService.checkStatus()
-            .then(response => {
-                if (response.status === 'running') {
-                    statusMessage.value = `En ejecución (PID: ${data.pid})`;
-                    statusColor.value = 'info';
-                }              
-                else {
-                    statusMessage.value = 'Detenido';
-                    statusColor.value = 'grey';
-                }
-                loadingStatus.value = false;
-            })
-            .catch(error => {
-                loadingStatus.value = false;
-
-                statusMessage.value = "No se pudo obtener el estado";
-                statusColor.value = "error";
-                console.warn(error);
-            });
-    }
-
-    // const imageWidth = 640;
-    // const imageHeight = 640;
-
-    // const boundingBoxStyle = computed(() => {
-    //     const {
-    //         boxx1, boxx2,
-    //         boxy1, boxy2
-    //     } = ultimoReporte.value;
-
-    //     if (
-    //         boxx1 === undefined || boxx2 === undefined ||
-    //         boxy1 === undefined || boxy2 === undefined
-    //     ) return {};
-
-    //     return {
-    //         left: `${(boxx1 / imageWidth) * 100}%`,
-    //         top: `${(boxy1 / imageHeight) * 100}%`,
-    //         width: `${((boxx2 - boxx1) / imageWidth) * 100}%`,
-    //         height: `${((boxy2 - boxy1) / imageHeight) * 100}%`
-    //     };
-    // });
-
-    // const loadItems = async () => {
-    //     loading.value = true
-        
-    //     camaraService.getCamaraPorId(camaraId)
-    //         .then(response => {
-    //             datosCamara.value = {
-    //                 camara: response.at(0).camara,
-    //                 area: response.at(0).area,
-    //                 cinta: response.at(0).cinta
-    //             }
-    //             loading.value = false;
-    //         })
-    //         .catch(err => {
-    //             console.log(err);
-    //         });
-        
-    //     reporteService.getReportePaginado()
-    //         .then(response => {
-    //             var ultimo = response[response.length - 1];
-
-    //             ultimoReporte.value = {
-    //                 defecto: aux.damagesToES(ultimo.class),
-    //                 fecha: aux.formatDateToPE(ultimo.created_at),
-    //                 boxy1: ultimo.bbox_y1,
-    //                 boxy2: ultimo.bbox_y2,
-    //                 boxx1: ultimo.bbox_x1,
-    //                 boxx2: ultimo.bbox_x2
-    //             };
-    //         })
-        
-    //     //enviarImagen()
-    // }
-
-    onMounted(() => {
-        loadItems()
-    })
+onMounted(() => {
+  loadItems();
+});
 </script>
