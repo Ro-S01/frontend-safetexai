@@ -10,7 +10,7 @@
           <v-col cols="7">
             <v-img
               aspect-ratio="16/9"
-              src="/images/input/frame_001.jpg"
+              :src="latestImageUrl"
               id="telaCaptura"
               class="bounding-box-img"
             >
@@ -51,24 +51,73 @@
 
             <v-row>
               <v-col cols="6">
-                <v-text-field v-model="params.partida" label="Partida" type="number" />
+                <v-select
+                  v-model="params.partida"
+                  :items="partidasDisponibles"
+                  label="Partida"
+                  :loading="loadingPartidas"
+                  @update:model-value="onPartidaChange"
+                ></v-select>
               </v-col>
               <v-col cols="6">
-                <v-text-field v-model="params.roll" label="Rollo" type="number" />
+                <v-select
+                  v-model="params.roll"
+                  :items="rollosDisponibles"
+                  label="Rollo"
+                  :disabled="!params.partida"
+                ></v-select>
               </v-col>
               <v-col cols="6">
-                <v-text-field v-model="params.interval" label="Intervalo (s)" type="number" step="0.1" />
+                <v-text-field
+                  v-model.number="params.interval"
+                  label="Intervalo (s)"
+                  type="number"
+                  step="0.1"
+                  min="0.1"
+                  :rules="intervalRules"
+                />
               </v-col>
               <v-col cols="6">
-                <v-text-field v-model="params.threshold" label="Umbral" type="number" step="0.1" />
+                <v-text-field
+                  v-model.number="params.threshold"
+                  label="Umbral"
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  max="1"
+                  :rules="thresholdRules"
+                />
               </v-col>
 
-              <!-- 🧠 Resolution Controls -->
-              <v-col cols="6">
-                <v-text-field v-model="params.width" label="Ancho (px)" type="number" />
+              <!-- Resolution Controls with Aspect Ratio Lock -->
+              <v-col cols="12">
+                <v-checkbox
+                  v-model="lockAspectRatio"
+                  label="Mantener proporción (16:9)"
+                  density="compact"
+                ></v-checkbox>
               </v-col>
               <v-col cols="6">
-                <v-text-field v-model="params.height" label="Alto (px)" type="number" />
+                <v-text-field
+                  v-model.number="params.width"
+                  label="Ancho (px)"
+                  type="number"
+                  min="320"
+                  step="16"
+                  :rules="widthRules"
+                  @input="onWidthChange"
+                />
+              </v-col>
+              <v-col cols="6">
+                <v-text-field
+                  v-model.number="params.height"
+                  label="Alto (px)"
+                  type="number"
+                  min="180"
+                  step="9"
+                  :rules="heightRules"
+                  @input="onHeightChange"
+                />
               </v-col>
             </v-row>
 
@@ -124,35 +173,66 @@
 </style>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useRoute } from "vue-router";
 import camaraService from "../services/service.camara.js";
 import reporteService from "../services/service.reporte.js";
 import * as aux from "@/common/general.js";
+import { supabase } from "../lib/supabaseClient";
 
 const route = useRoute();
 const camaraId = route.params.camaraId;
 const loading = ref(false);
 const datosCamara = ref({});
 const ultimoReporte = ref({});
-const imageList = ["frame_001.jpg", "frame_002.jpg"];
+const latestImageUrl = ref("/images/input/frame_001.jpg");
 
-// 🧠 API parameters (includes resolution)
+// Supabase data
+const partidasDisponibles = ref([]);
+const rollosDisponibles = ref([]);
+const loadingPartidas = ref(false);
+const lockAspectRatio = ref(true);
+const aspectRatio = 16 / 9;
+const updatingResolution = ref(false);
+
+// API parameters
 const params = ref({
-  partida: 1001,
-  roll: 1,
+  partida: null,
+  roll: null,
   interval: 1.0,
   threshold: 0.5,
   width: 1920,
   height: 1080,
 });
 
-// 🧠 UI state
+// UI state
 const loadingStart = ref(false);
 const loadingStop = ref(false);
 const loadingStatus = ref(false);
 const statusMessage = ref("");
 const statusColor = ref("info");
+
+// Validation rules
+const intervalRules = [
+  (v) => v > 0 || "El intervalo debe ser mayor a 0",
+  (v) => v >= 0.1 || "El intervalo mínimo es 0.1 segundos",
+];
+
+const thresholdRules = [
+  (v) => v >= 0.01 || "El umbral mínimo es 0.01",
+  (v) => v <= 1 || "El umbral máximo es 1",
+  (v) => (v >= 0.01 && v <= 1) || "El umbral debe estar entre 0.01 y 1",
+];
+
+const widthRules = [
+  (v) => v > 0 || "El ancho debe ser mayor a 0",
+  (v) => v >= 320 || "El ancho mínimo es 320px",
+];
+
+const heightRules = [
+  (v) => v > 0 || "El alto debe ser mayor a 0",
+  (v) => v >= 180 || "El alto mínimo es 180px",
+];
 
 const imageWidth = 640;
 const imageHeight = 640;
@@ -174,21 +254,112 @@ const boundingBoxStyle = computed(() => {
   };
 });
 
+// Maintain aspect ratio
+function onWidthChange(event) {
+  if (lockAspectRatio.value && !updatingResolution.value) {
+    updatingResolution.value = true;
+    const width = parseInt(event.target.value) || params.value.width;
+    params.value.height = Math.round(width / aspectRatio);
+    setTimeout(() => {
+      updatingResolution.value = false;
+    }, 0);
+  }
+}
+
+function onHeightChange(event) {
+  if (lockAspectRatio.value && !updatingResolution.value) {
+    updatingResolution.value = true;
+    const height = parseInt(event.target.value) || params.value.height;
+    params.value.width = Math.round(height * aspectRatio);
+    setTimeout(() => {
+      updatingResolution.value = false;
+    }, 0);
+  }
+}
+
+// Load partidas from Supabase
+async function loadPartidas() {
+  loadingPartidas.value = true;
+  try {
+    const { data, error } = await supabase
+      .from("partida")
+      .select("id")
+      .order("id", { ascending: true });
+
+    if (error) throw error;
+
+    partidasDisponibles.value = data.map((p) => p.id);
+  } catch (err) {
+    console.error("Error loading partidas:", err);
+    statusMessage.value = "Error al cargar partidas";
+    statusColor.value = "error";
+  } finally {
+    loadingPartidas.value = false;
+  }
+}
+
+// Load rollos based on selected partida
+async function onPartidaChange(partidaId) {
+  console.log("Selected partida:", partidaId);
+  if (!partidaId) {
+    rollosDisponibles.value = [];
+    return;
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("partida")
+      .select("rollos")
+      .eq("id", partidaId)
+      .single();
+
+    if (error) throw error;
+console.log("Rollos data:", data);
+    const numRollos = data.rollos || 0;
+    rollosDisponibles.value = Array.from({ length: numRollos }, (_, i) => i + 1);
+    params.value.roll = rollosDisponibles.value.length > 0 ? rollosDisponibles.value[0] : null;
+  } catch (err) {
+    console.error("Error loading rollos:", err);
+    rollosDisponibles.value = [];
+  }
+}
+
+// Load latest detection from Supabase
+async function loadLatestDetection() {
+  try {
+    const { data, error } = await supabase
+      .from("detecciones")
+      .select("partida_id,nro_rollo,frame, clase, hora, coordenadas")
+      .order("hora", { ascending: false })
+      .not("clase", "eq", "fin")
+      .not("clase", "eq", "inicio")
+      .limit(1)
+      .single();
+    console.log("Latest detection data:", data, error);
+    console.log("Latest detection data:", data.clase, error);
+    if (error) throw error;
+
+    if (data) {
+      latestImageUrl.value = data.frame || "/images/input/frame_001.jpg";
+      ultimoReporte.value = {
+        defecto: aux.damagesToES(data.clase),
+        fecha: aux.formatDateToPE(data.hora),
+        boxy1: data.coordenadas,
+      };
+    }
+  } catch (err) {
+    console.error("Error loading latest detection:", err);
+  }
+}
+
 const loadItems = async () => {
   loading.value = true;
   try {
     const camara = await camaraService.getCamaraPorId(camaraId);
     datosCamara.value = camara?.[0] || {};
-    const response = await reporteService.getReportePaginado();
-    const ultimo = response.at(-1);
-    ultimoReporte.value = {
-      defecto: aux.damagesToES(ultimo.class),
-      fecha: aux.formatDateToPE(ultimo.created_at),
-      boxy1: ultimo.bbox_y1,
-      boxy2: ultimo.bbox_y2,
-      boxx1: ultimo.bbox_x1,
-      boxx2: ultimo.bbox_x2,
-    };
+    
+    // Load from Supabase instead of service
+    await loadLatestDetection();
   } catch (err) {
     console.error(err);
   } finally {
@@ -199,6 +370,19 @@ const loadItems = async () => {
 const apiBase = "http://192.168.100.131:8000";
 
 async function startProcess() {
+  // Validate before starting
+  if (params.value.threshold < 0.01 || params.value.threshold > 1) {
+    statusMessage.value = "Umbral debe estar entre 0.01 y 1";
+    statusColor.value = "error";
+    return;
+  }
+
+  if (params.value.interval < 0.1) {
+    statusMessage.value = "Intervalo debe ser al menos 0.1 segundos";
+    statusColor.value = "error";
+    return;
+  }
+
   loadingStart.value = true;
   try {
     const query = new URLSearchParams({
@@ -256,5 +440,6 @@ async function checkStatus() {
 
 onMounted(() => {
   loadItems();
+  loadPartidas();
 });
 </script>
