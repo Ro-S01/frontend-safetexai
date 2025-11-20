@@ -95,7 +95,7 @@
                   type="number"
                   step="0.01"
                   min="0.01"
-                  max="1"
+                  max="1.0"
                   :rules="thresholdRules"
                 />
               </v-col>
