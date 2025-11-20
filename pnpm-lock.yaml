@@ -29,6 +29,9 @@ importers:
       xlsx:
         specifier: ^0.18.5
         version: 0.18.5
+      vue3-toastify: 
+        specifier: "^0.2.8"
+        version: "0.2.8"
     devDependencies:
       '@vitejs/plugin-vue':
         specifier: ^5.2.3
