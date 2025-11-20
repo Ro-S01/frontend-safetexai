@@ -214,14 +214,12 @@ const loadFrames = async (report) => {
 
     console.log("Detections fetched:", data.length);
 
-    // 2️⃣ Group detections by frame
     const framesMap = {};
     for (const det of data) {
       if (!framesMap[det.frame]) framesMap[det.frame] = [];
       framesMap[det.frame].push(det);
     }
 
-    // 3️⃣ Generate public URLs for each frame in Supabase Storage
     const frames = [];
     for (const frameName of Object.keys(framesMap)) {
       let publicUrl;

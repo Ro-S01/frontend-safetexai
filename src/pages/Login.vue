@@ -12,15 +12,15 @@
 
                     <v-container class="pl-8 pr-8">
                         <v-form class="mb-16">
-                            <v-card-text class="text-h6 pl-0 pb-1">Nombre de usuario</v-card-text>
-                            <v-text-field v-model="nombreUsuario">
+                            <v-card-text class="text-h6 pl-0 pb-1">Correo usuario</v-card-text>
+                            <v-text-field v-model="correoUsuario">
                             </v-text-field>
 
                             <v-card-text class="text-h6 pl-0 pb-1 pt-2">Contraseña</v-card-text>
-                            <v-text-field v-model="contrasena" type="password">
+                            <v-text-field v-model="password" type="password">
                             </v-text-field>
 
-                            <v-btn class="mt-2 text-none" size="large" variant="flat" color="black" type="submit" to="/home">Ingresar</v-btn>
+                            <v-btn class="mt-2 text-none" size="large" variant="flat" color="black" @click="login">Ingresar</v-btn>
                          </v-form>
 
                         <a class="text-h7 font-italic text-decoration-underline text-blue-lighten-2" href="#">Olvido su contraseña?</a>
@@ -42,8 +42,38 @@
 
 <script setup>
     import { ref } from 'vue'
+    import { useRouter } from "vue-router";
+    import { toast } from "vue3-toastify";
+    import { supabase } from "../lib/supabaseClient";
 
+    const correoUsuario = ref('');
+    const password = ref('');
+    const router = useRouter();
 
-    const nombreUsuario = ref('');
-    const contrasena = ref('');
+    async function login() {
+    if (!correoUsuario.value || !password.value) {
+        toast("Debes completar los campos.");
+        return;
+    }
+
+    try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email: correoUsuario.value,
+            password: password.value
+        });
+
+        if (error) {
+            toast.error(error.message);
+            return;
+        }
+
+        // Login success
+        toast.success("Inicio de sesión exitoso");
+        router.push("/Home");
+
+    } catch (err) {
+        toast.error("Error al iniciar sesión");
+        console.error(err);
+    }
+}
 </script>

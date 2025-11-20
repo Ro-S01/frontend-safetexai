@@ -18,7 +18,7 @@
     <template v-slot:append>
       <v-list-item class="mb-5">
         <div class="mt-auto font-italic">
-          <v-btn prepend-icon="mdi-exit-to-app" class="text-red-lighten-1 text-none" variant="text" to="/login">Cerrar Sesión</v-btn>
+          <v-btn prepend-icon="mdi-exit-to-app" class="text-red-lighten-1 text-none" variant="text" @click="logout">Cerrar Sesión</v-btn>
         </div>
       </v-list-item>
     </template>
@@ -26,10 +26,23 @@
 </template>
 
 <script setup>
-  import { ref, watch } from 'vue'
+  import { supabase } from '@/lib/supabaseClient';
+import { ref, watch } from 'vue'
+  import { useRouter } from "vue-router";
+  import { toast } from "vue3-toastify";
 
-  const drawer = ref(false)
-  
+  const drawer = ref(false);
+  const router = useRouter();
+
+  async function logout() {
+    try {
+      await supabase.auth.signOut();     
+      toast.info("Logged out");
+      router.push("/Login");
+    } catch (err) {
+      toast.error(err.message);
+    }
+}
 </script>
 
 <styles lang="css">
