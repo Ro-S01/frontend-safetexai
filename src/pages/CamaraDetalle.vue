@@ -27,17 +27,28 @@
           </v-col>
 
           <v-col cols="12" md="5">
-            <v-card-text class="text-h5 font-weight-black pa-0">Cámara</v-card-text>
+            <v-card-text class="text-h5 font-weight-black pa-0"
+              >Cámara</v-card-text
+            >
             <v-card-text class="text-h5 pa-0 mb-3">CAM001</v-card-text>
 
-            <v-card-text class="text-h5 font-weight-black pa-0">Área</v-card-text>
+            <v-card-text class="text-h5 font-weight-black pa-0"
+              >Área</v-card-text
+            >
             <v-card-text class="text-h5 pa-0 mb-3">A1</v-card-text>
 
-            <v-card-text class="text-h5 font-weight-black pa-0">Cinta</v-card-text>
+            <v-card-text class="text-h5 font-weight-black pa-0"
+              >Cinta</v-card-text
+            >
             <v-card-text class="text-h5 pa-0 mb-3">CNT01</v-card-text>
 
-            <v-card-text class="text-h5 font-weight-black pa-0">Último reporte</v-card-text>
-            <v-card-text class="text-h5 pt-2 pb-2 pr-3 report-border" id="txtDefecto">
+            <v-card-text class="text-h5 font-weight-black pa-0"
+              >Último reporte</v-card-text
+            >
+            <v-card-text
+              class="text-h5 pt-2 pb-2 pr-3 report-border"
+              id="txtDefecto"
+            >
               Defecto: {{ ultimoReporte.defecto }}
             </v-card-text>
             <v-card-text class="text-h5 pt-2 pb-2 pr-3 mb-3 report-border">
@@ -123,19 +134,74 @@
 
             <v-row class="mt-1">
               <v-col cols="12" class="d-flex justify-space-between">
-                <v-btn color="green" @click="startProcess" :loading="loadingStart">Iniciar</v-btn>
-                <v-btn color="red" @click="stopProcess" :loading="loadingStop">Detener</v-btn>
-                <v-btn color="blue" @click="checkStatus" :loading="loadingStatus">Estado</v-btn>
+                <v-btn
+                  color="green"
+                  @click="startProcess"
+                  :loading="loadingStart"
+                  >Iniciar</v-btn
+                >
+                <v-btn color="red" @click="stopProcess" :loading="loadingStop"
+                  >Detener</v-btn
+                >
+                <v-btn
+                  color="blue"
+                  @click="checkStatus"
+                  :loading="loadingStatus"
+                  >Estado</v-btn
+                >
               </v-col>
             </v-row>
 
-            <v-alert v-if="statusMessage" class="mt-3" :type="statusColor" variant="tonal">
+            <v-row class="mt-3">
+              <v-col cols="12">
+                <v-file-input
+                  v-model="selectedImage"
+                  label="Subir imagen"
+                  accept="image/*"
+                  prepend-icon="mdi-camera"
+                  show-size
+                  clearable
+                ></v-file-input>
+              </v-col>
+
+              <v-col cols="12">
+                <v-btn
+                  color="primary"
+                  block
+                  @click="uploadImage"
+                  :loading="loadingUpload"
+                  :disabled="!selectedImage"
+                >
+                  Enviar Imagen
+                </v-btn>
+              </v-col>
+            </v-row>
+            <v-alert
+              v-if="statusMessage"
+              class="mt-3"
+              :type="statusColor"
+              variant="tonal"
+            >
               {{ statusMessage }}
             </v-alert>
 
             <v-card-actions class="justify-content-end pa-0 mt-4">
-              <v-btn size="large" variant="outlined" color="black" class="text-none" to="/camara">Regresar</v-btn>
-              <v-btn size="large" variant="flat" color="black" class="text-none" to="/reporte">Ver Reporte</v-btn>
+              <v-btn
+                size="large"
+                variant="outlined"
+                color="black"
+                class="text-none"
+                to="/camara"
+                >Regresar</v-btn
+              >
+              <v-btn
+                size="large"
+                variant="flat"
+                color="black"
+                class="text-none"
+                to="/reporte"
+                >Ver Reporte</v-btn
+              >
             </v-card-actions>
           </v-col>
         </v-row>
@@ -209,6 +275,8 @@ const params = ref({
 const loadingStart = ref(false);
 const loadingStop = ref(false);
 const loadingStatus = ref(false);
+const loadingUpload = ref(false);
+const selectedImage = ref(null);
 const statusMessage = ref("");
 const statusColor = ref("info");
 
@@ -314,10 +382,14 @@ async function onPartidaChange(partidaId) {
       .single();
 
     if (error) throw error;
-console.log("Rollos data:", data);
+    console.log("Rollos data:", data);
     const numRollos = data.rollos || 0;
-    rollosDisponibles.value = Array.from({ length: numRollos }, (_, i) => i + 1);
-    params.value.roll = rollosDisponibles.value.length > 0 ? rollosDisponibles.value[0] : null;
+    rollosDisponibles.value = Array.from(
+      { length: numRollos },
+      (_, i) => i + 1
+    );
+    params.value.roll =
+      rollosDisponibles.value.length > 0 ? rollosDisponibles.value[0] : null;
   } catch (err) {
     console.error("Error loading rollos:", err);
     rollosDisponibles.value = [];
@@ -357,7 +429,7 @@ const loadItems = async () => {
   try {
     const camara = await camaraService.getCamaraPorId(camaraId);
     datosCamara.value = camara?.[0] || {};
-    
+
     // Load from Supabase instead of service
     await loadLatestDetection();
   } catch (err) {
@@ -393,7 +465,9 @@ async function startProcess() {
       width: params.value.width,
       height: params.value.height,
     });
-    const res = await fetch(`${apiBase}/start?${query.toString()}`, { method: "POST" });
+    const res = await fetch(`${apiBase}/start?${query.toString()}`, {
+      method: "POST",
+    });
     const data = await res.json();
     statusMessage.value = `Proceso iniciado: ${data.status}`;
     statusColor.value = "success";
@@ -435,6 +509,51 @@ async function checkStatus() {
     statusColor.value = "error";
   } finally {
     loadingStatus.value = false;
+  }
+}
+async function uploadImage() {
+  if (!selectedImage.value || selectedImage.value.length === 0) {
+    statusMessage.value = "Por favor seleccione una imagen";
+
+    statusColor.value = "warning";
+
+    return;
+  }
+
+  loadingUpload.value = true;
+
+  try {
+    const formData = new FormData();
+
+    formData.append("file", selectedImage.value[0]);
+
+    // TODO: Replace with your actual API endpoint
+
+    const res = await fetch(`${apiBase}/upload`, {
+      method: "POST",
+
+      body: formData,
+    });
+
+    if (!res.ok) {
+      throw new Error(`Error ${res.status}: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+
+    statusMessage.value = "Imagen subida exitosamente";
+
+    statusColor.value = "success";
+
+    selectedImage.value = null;
+  } catch (err) {
+    console.error("Error uploading image:", err);
+
+    statusMessage.value = `Error al subir la imagen: ${err.message}`;
+
+    statusColor.value = "error";
+  } finally {
+    loadingUpload.value = false;
   }
 }
 
