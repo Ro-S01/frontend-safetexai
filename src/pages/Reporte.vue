@@ -2,7 +2,31 @@
   <v-container>
     <v-card class="pa-5">
       <template #title>
-        <span class="font-weight-black text-h4">Listado de Reportes</span>
+        <div class="d-flex align-center justify-space-between">
+          <span class="font-weight-black text-h4">Listado de Reportes</span>
+
+          <!-- Export buttons -->
+          <div class="d-flex">
+            <v-btn
+              class="mr-3"
+              small
+              elevation
+              @click="exportMainExcel"
+            >
+              Exportar Reportes (Excel)
+            </v-btn>
+
+            <v-btn
+              small
+              elevation
+              :disabled="!canExportDetail"
+              @click="exportDetailExcel"
+              title="Habilitado cuando hay partida seleccionada y al menos un detalle cargado en filas expandidas"
+            >
+              Exportar Detalles (Excel)
+            </v-btn>
+          </div>
+        </div>
       </template>
 
       <!-- Dropdown filter -->
@@ -69,9 +93,9 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from "vue";
+import { ref, watch, onMounted, computed, nextTick } from "vue";
 import { supabase } from "../lib/supabaseClient";
-import { nextTick } from "vue";
+import * as XLSX from "xlsx";
 
 const headers = [
   { title: "# Partida", value: "partida_id" },
@@ -128,6 +152,7 @@ const getPaginatedFrames = (item) => {
 
 const getTotalPages = (item) => Math.ceil(getFilteredFrames(item).length / ITEMS_PER_PAGE);
 
+//  Load dropdown items
 const loadPartidas = async () => {
   const { data, error } = await supabase
     .from("vw_reporte_detecciones")
@@ -136,6 +161,7 @@ const loadPartidas = async () => {
   if (!error) partidas.value = [...new Set(data.map(d => d.partida_id))];
 };
 
+//  Load reports
 const loadReports = async () => {
   loading.value = true;
   try {
@@ -162,12 +188,13 @@ const loadReports = async () => {
   }
 };
 
+//  Load detecciones detalle
 const loadFrames = async (report) => {
   console.log("Loading frames for", report.partida_id, report.nro_rollo);
   loading.value = true;
 
   try {
-    // 1️⃣ Fetch detections for the selected partida + rollo
+    // Fetch detecciones partida + rollo
     const { data, error } = await supabase
       .from("detecciones")
       .select("id, frame, clase, coordenadas, hora")
@@ -187,12 +214,14 @@ const loadFrames = async (report) => {
 
     console.log("Detections fetched:", data.length);
 
+    // 2️⃣ Group detections by frame
     const framesMap = {};
     for (const det of data) {
       if (!framesMap[det.frame]) framesMap[det.frame] = [];
       framesMap[det.frame].push(det);
     }
 
+    // 3️⃣ Generate public URLs for each frame in Supabase Storage
     const frames = [];
     for (const frameName of Object.keys(framesMap)) {
       let publicUrl;
@@ -222,6 +251,8 @@ const loadFrames = async (report) => {
       });
     }
 
+
+    // Montar frames 
     report.frames = frames;
     report.framesLoaded = true;
     console.log("Frames ready:", frames.length);
@@ -242,6 +273,7 @@ function colorToRgba(color, alpha = 0.3) {
   return map[color] || `rgba(0,0,0,${alpha})`;
 }
 
+//  Draw polygons
 function drawFrame(canvas, frameData) {
   if (!canvas || !frameData.url) return;
   const ctx = canvas.getContext("2d");
@@ -273,6 +305,8 @@ function drawFrame(canvas, frameData) {
         ctx.strokeStyle = color;
         ctx.lineWidth = 2;
         ctx.stroke();
+
+        // transparent fill
         const rgba = colorToRgba(color, 0.25);
         ctx.fillStyle = rgba;
         ctx.fill();
@@ -281,9 +315,91 @@ function drawFrame(canvas, frameData) {
         ctx.font = "12px Arial";
         ctx.fillText(det.clase, coords[0][0] * scaleX, coords[0][1] * scaleY - 5);
       });
-    }, 100);
+    }, 100); 
   };
 }
+
+
+const isExpanded = (report) => expanded.value.includes(`${report.partida_id}_${report.nro_rollo}`);
+
+
+const canExportDetail = computed(() => !!selectedPartida.value);
+
+
+// ---- EXCEL EXPORT ----
+
+
+const exportMainExcel = () => {
+  const rows = dataList.value.map(r => ({
+    partida_id: r.partida_id,
+    nro_rollo: r.nro_rollo,
+    huecos: r.huecos,
+    lineas: r.lineas,
+    manchas: r.manchas,
+    total_detecciones: r.detecciones,
+    hora_inicio: r.hora_inicio,
+    hora_fin: r.hora_fin,
+    duracion: r.duracion
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Reportes");
+  const now = new Date().toISOString().slice(0,19).replace(/[:T]/g, "-");
+  XLSX.writeFile(wb, `reportes_resumen_${now}.xlsx`);
+};
+
+// Export detalles
+const exportDetailExcel = async () => {
+  if (!canExportDetail.value) return;
+
+  // Get ALL reports with the selected partida
+  const reports = dataList.value.filter(
+    r => r.partida_id === selectedPartida.value
+  );
+
+  let rows = [];
+
+  for (const report of reports) {
+    // Query detecciones directly for each roll
+    const { data, error } = await supabase
+      .from("detecciones")
+      .select("id, frame, clase, coordenadas, hora")
+      .eq("partida_id", report.partida_id)
+      .eq("nro_rollo", report.nro_rollo)
+      .not("clase", "in", '("inicio","fin")')
+      .order("hora", { ascending: true });
+
+    if (error) {
+      console.error("Supabase error:", error);
+      continue;
+    }
+
+    if (!data) continue;
+
+    // One row per detection
+    rows.push(...data.map(det => ({
+      partida_id: report.partida_id,
+      nro_rollo: report.nro_rollo,
+      frame: det.frame,
+      clase: det.clase,
+      coordenadas: JSON.stringify(det.coordenadas),
+      hora: det.hora
+    })));
+  }
+
+  if (rows.length === 0) return;
+
+  // Export
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Detalles");
+
+  const now = new Date().toISOString().slice(0,19).replace(/[:T]/g, "-");
+  XLSX.writeFile(wb, `reportes_detalle_${now}.xlsx`);
+};
+
+
 
 watch(expanded, (newExpanded) => {
   console.log("Expanded changed:", newExpanded);
@@ -294,6 +410,7 @@ watch(expanded, (newExpanded) => {
     if (report && !report.framesLoaded) loadFrames(report);
   });
 });
+
 
 watch(selectedPartida, () => loadReports());
 
