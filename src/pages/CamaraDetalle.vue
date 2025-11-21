@@ -514,9 +514,7 @@ async function checkStatus() {
 async function uploadImage() {
   if (!selectedImage.value || selectedImage.value.length === 0) {
     statusMessage.value = "Por favor seleccione una imagen";
-
     statusColor.value = "warning";
-
     return;
   }
 
@@ -524,38 +522,52 @@ async function uploadImage() {
 
   try {
     const formData = new FormData();
-
     formData.append("file", selectedImage.value[0]);
 
-    // TODO: Replace with your actual API endpoint
+const res = await fetch(
+  "https://racial-calculator-dude-website.trycloudflare.com/infer",
+  {
+    method: "POST",
+    body: formData,
+  }
+);
 
-    const res = await fetch(`${apiBase}/upload`, {
-      method: "POST",
 
-      body: formData,
-    });
-
-    if (!res.ok) {
-      throw new Error(`Error ${res.status}: ${res.statusText}`);
-    }
+    if (!res.ok) throw new Error(`Error ${res.status}`);
 
     const data = await res.json();
 
-    statusMessage.value = "Imagen subida exitosamente";
+    console.log("POLÍGONOS DETECTADOS:", data);
 
+    /**
+     * data = {
+     *   detections: [
+     *     {
+     *       cls: "line",
+     *       confidence: 0.79,
+     *       polygon: [x1,y1,x2,y2,x3,y3,x4,y4]
+     *     },
+     *     ...
+     *   ]
+     * }
+     */
+
+    // Aquí puedes guardar los resultados para dibujarlos
+    ultimoReporte.value = data;
+
+    statusMessage.value = "Inferencia realizada correctamente";
     statusColor.value = "success";
-
     selectedImage.value = null;
+
   } catch (err) {
-    console.error("Error uploading image:", err);
-
-    statusMessage.value = `Error al subir la imagen: ${err.message}`;
-
+    console.error("Error a subir imagen:", err);
+    statusMessage.value = "Error al enviar imagen";
     statusColor.value = "error";
   } finally {
     loadingUpload.value = false;
   }
 }
+
 
 onMounted(() => {
   loadItems();
