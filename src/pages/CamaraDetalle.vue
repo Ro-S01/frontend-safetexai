@@ -7,23 +7,67 @@
 
       <v-container class="pa-4">
         <v-row>
-          <v-col cols="7">
-            <v-img
-              aspect-ratio="16/9"
-              :src="latestImageUrl"
-              id="telaCaptura"
-              class="bounding-box-img"
-            >
-              <template #default>
-                <div class="bounding-box-container">
-                  <div
-                    v-if="ultimoReporte.boxx1 !== undefined"
-                    class="bounding-box"
-                    :style="boundingBoxStyle"
-                  ></div>
-                </div>
-              </template>
-            </v-img>
+          <v-col cols="12">
+            <div class="image-container">
+              <v-img
+                aspect-ratio="16/9"
+                :src="latestImageUrl"
+                id="telaCaptura"
+                class="bounding-box-img"
+                @load="onImageLoad"
+              >
+              </v-img>
+              <!-- Move SVG outside v-img -->
+              <svg
+                v-if="detectedPolygons.length > 0"
+                class="polygon-overlay"
+                :viewBox="`0 0 ${imageWidth} ${imageHeight}`"
+                preserveAspectRatio="none"
+              >
+                <!-- Draw all detected polygons -->
+                <polygon
+                  v-for="(detection, index) in detectedPolygons"
+                  :key="index"
+                  :points="formatPolygonPoints(detection.polygon)"
+                  :class="`polygon-${detection.class}`"
+                  class="detection-polygon"
+                />
+                
+                <!-- Draw rotation indicator line from center -->
+                <line
+                  v-for="(detection, index) in detectedPolygons"
+                  :key="`angle-${index}`"
+                  :x1="getPolygonCenter(detection.polygon).x"
+                  :y1="getPolygonCenter(detection.polygon).y"
+                  :x2="getAngleEndPoint(detection.polygon).x"
+                  :y2="getAngleEndPoint(detection.polygon).y"
+                  class="angle-indicator"
+                  :class="`polygon-${detection.class}`"
+                />
+                
+                <!-- Draw center point -->
+                <circle
+                  v-for="(detection, index) in detectedPolygons"
+                  :key="`center-${index}`"
+                  :cx="getPolygonCenter(detection.polygon).x"
+                  :cy="getPolygonCenter(detection.polygon).y"
+                  r="5"
+                  class="center-point"
+                  :class="`polygon-${detection.class}`"
+                />
+                
+                <!-- Draw labels with angle -->
+                <text
+                  v-for="(detection, index) in detectedPolygons"
+                  :key="`label-${index}`"
+                  :x="detection.polygon[0][0]"
+                  :y="detection.polygon[0][1] - 10"
+                  class="detection-label"
+                >
+                  {{ detection.class }} ({{ (detection.score * 100).toFixed(0) }}%) - {{ getRotationAngle(detection.polygon).toFixed(1) }}°
+                </text>
+              </svg>
+            </div>
           </v-col>
 
           <v-col cols="12" md="5">
@@ -95,7 +139,7 @@
                   type="number"
                   step="0.01"
                   min="0.01"
-                  max="1.0"
+                  max="1"
                   :rules="thresholdRules"
                 />
               </v-col>
@@ -185,6 +229,13 @@
               {{ statusMessage }}
             </v-alert>
 
+            <!-- Debug info -->
+            <v-card v-if="detectedPolygons.length > 0" class="mt-3 pa-2" variant="outlined">
+              <small>Detecciones: {{ detectedPolygons.length }}</small>
+              <br>
+              <small>Dimensiones imagen: {{ imageWidth }}x{{ imageHeight }}</small>
+            </v-card>
+
             <v-card-actions class="justify-content-end pa-0 mt-4">
               <v-btn
                 size="large"
@@ -219,22 +270,110 @@
 #txtDefecto {
   border-bottom: 0px;
 }
+
+/* Image container for positioning */
+.image-container {
+  position: relative;
+  width: 100%;
+}
+
 .bounding-box-img {
   position: relative;
   width: 100%;
   height: auto;
+  display: block;
 }
-.bounding-box-container {
+
+/* Polygon overlay */
+.polygon-overlay {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
+  pointer-events: none;
+  z-index: 10;
 }
-.bounding-box {
-  position: absolute;
-  border: 2px solid red;
-  background-color: rgba(255, 0, 0, 0.2);
+
+.detection-polygon {
+  fill: rgba(255, 0, 0, 0.25);
+  stroke: red;
+  stroke-width: 5;
+  transition: all 0.3s ease;
+}
+
+.detection-polygon:hover {
+  fill: rgba(255, 0, 0, 0.4);
+  stroke-width: 7;
+}
+
+/* Different colors for different classes */
+.polygon-line {
+  fill: rgba(255, 0, 0, 0.25);
+  stroke: #ff0000;
+  stroke-width: 5;
+}
+
+.polygon-hole {
+  fill: rgba(255, 165, 0, 0.25);
+  stroke: #ffa500;
+  stroke-width: 5;
+}
+
+.polygon-stain {
+  fill: rgba(139, 69, 19, 0.25);
+  stroke: #8b4513;
+  stroke-width: 5;
+}
+
+/* Angle indicator line */
+.angle-indicator {
+  stroke-width: 4;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.angle-indicator.polygon-line {
+  stroke: #ff0000;
+}
+
+.angle-indicator.polygon-hole {
+  stroke: #ffa500;
+}
+
+.angle-indicator.polygon-stain {
+  stroke: #8b4513;
+}
+
+/* Center point */
+.center-point {
+  pointer-events: none;
+}
+
+.center-point.polygon-line {
+  fill: #ff0000;
+  stroke: white;
+  stroke-width: 2;
+}
+
+.center-point.polygon-hole {
+  fill: #ffa500;
+  stroke: white;
+  stroke-width: 2;
+}
+
+.center-point.polygon-stain {
+  fill: #8b4513;
+  stroke: white;
+  stroke-width: 2;
+}
+
+.detection-label {
+  fill: white;
+  font-size: 20px;
+  font-weight: bold;
+  text-shadow: 2px 2px 6px rgba(0, 0, 0, 1), -1px -1px 2px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
 }
 </style>
 
@@ -245,6 +384,67 @@ import camaraService from "../services/service.camara.js";
 import reporteService from "../services/service.reporte.js";
 import * as aux from "@/common/general.js";
 import { supabase } from "../lib/supabaseClient";
+
+const detectedPolygons = ref([]);
+const imageWidth = ref(640);
+const imageHeight = ref(640);
+
+// Helper functions for polygon rendering
+function formatPolygonPoints(polygon) {
+  if (!polygon || !Array.isArray(polygon)) {
+    console.warn("Invalid polygon data:", polygon);
+    return "";
+  }
+  return polygon.map((point) => `${point[0]},${point[1]}`).join(" ");
+}
+
+function getPolygonCenter(polygon) {
+  if (!polygon || polygon.length === 0) return { x: 0, y: 0 };
+  const sumX = polygon.reduce((sum, point) => sum + point[0], 0);
+  const sumY = polygon.reduce((sum, point) => sum + point[1], 0);
+  return {
+    x: sumX / polygon.length,
+    y: sumY / polygon.length
+  };
+}
+
+function getRotationAngle(polygon) {
+  if (!polygon || polygon.length < 2) return 0;
+  
+  // Calculate angle from first edge (point 0 to point 1)
+  const dx = polygon[1][0] - polygon[0][0];
+  const dy = polygon[1][1] - polygon[0][1];
+  let angle = Math.atan2(dy, dx) * (180 / Math.PI);
+  
+  // Normalize to 0-180 range
+  if (angle < 0) angle += 180;
+  
+  return angle;
+}
+
+function getAngleEndPoint(polygon) {
+  const center = getPolygonCenter(polygon);
+  const angle = getRotationAngle(polygon);
+  
+  // Calculate a line extending from center in the direction of rotation
+  const length = 40; // Length of the angle indicator line
+  const radians = angle * (Math.PI / 180);
+  
+  return {
+    x: center.x + length * Math.cos(radians),
+    y: center.y + length * Math.sin(radians)
+  };
+}
+
+// Add image load handler to get actual dimensions
+const onImageLoad = (event) => {
+  const img = event.target;
+  if (img) {
+    imageWidth.value = img.naturalWidth || 640;
+    imageHeight.value = img.naturalHeight || 640;
+    console.log("Image dimensions:", imageWidth.value, imageHeight.value);
+  }
+};
 
 const route = useRoute();
 const camaraId = route.params.camaraId;
@@ -301,26 +501,6 @@ const heightRules = [
   (v) => v > 0 || "El alto debe ser mayor a 0",
   (v) => v >= 180 || "El alto mínimo es 180px",
 ];
-
-const imageWidth = 640;
-const imageHeight = 640;
-
-const boundingBoxStyle = computed(() => {
-  const { boxx1, boxx2, boxy1, boxy2 } = ultimoReporte.value;
-  if (
-    boxx1 === undefined ||
-    boxx2 === undefined ||
-    boxy1 === undefined ||
-    boxy2 === undefined
-  )
-    return {};
-  return {
-    left: `${(boxx1 / imageWidth) * 100}%`,
-    top: `${(boxy1 / imageHeight) * 100}%`,
-    width: `${((boxx2 - boxx1) / imageWidth) * 100}%`,
-    height: `${((boxy2 - boxy1) / imageHeight) * 100}%`,
-  };
-});
 
 // Maintain aspect ratio
 function onWidthChange(event) {
@@ -408,7 +588,7 @@ async function loadLatestDetection() {
       .limit(1)
       .single();
     console.log("Latest detection data:", data, error);
-    console.log("Latest detection data:", data.clase, error);
+    
     if (error) throw error;
 
     if (data) {
@@ -430,7 +610,6 @@ const loadItems = async () => {
     const camara = await camaraService.getCamaraPorId(camaraId);
     datosCamara.value = camara?.[0] || {};
 
-    // Load from Supabase instead of service
     await loadLatestDetection();
   } catch (err) {
     console.error(err);
@@ -442,7 +621,6 @@ const loadItems = async () => {
 const apiBase = "http://192.168.100.131:8000";
 
 async function startProcess() {
-  // Validate before starting
   if (params.value.threshold < 0.01 || params.value.threshold > 1) {
     statusMessage.value = "Umbral debe estar entre 0.01 y 1";
     statusColor.value = "error";
@@ -511,6 +689,7 @@ async function checkStatus() {
     loadingStatus.value = false;
   }
 }
+
 async function uploadImage() {
   if (!selectedImage.value || selectedImage.value.length === 0) {
     statusMessage.value = "Por favor seleccione una imagen";
@@ -522,52 +701,75 @@ async function uploadImage() {
 
   try {
     const formData = new FormData();
-    formData.append("file", selectedImage.value[0]);
+    const file = Array.isArray(selectedImage.value)
+      ? selectedImage.value[0]
+      : selectedImage.value;
 
-const res = await fetch(
-  "https://racial-calculator-dude-website.trycloudflare.com/infer",
-  {
-    method: "POST",
-    body: formData,
-  }
-);
+    formData.append("file", file);
 
+    console.log("Uploading file:", file.name, file.type, file.size);
 
-    if (!res.ok) throw new Error(`Error ${res.status}`);
+    const res = await fetch(
+      "https://parliament-advances-plc-copying.trycloudflare.com/infer",
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    console.log("Response status:", res.status);
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("Error response:", errorText);
+      throw new Error(`Error ${res.status}: ${errorText}`);
+    }
 
     const data = await res.json();
+    console.log("Detecciones recibidas:", data);
 
-    console.log("POLÍGONOS DETECTADOS:", data);
+    if (data.polygons && data.polygons.length > 0) {
+      detectedPolygons.value = data.polygons;
+      console.log("Polygons set:", detectedPolygons.value);
 
-    /**
-     * data = {
-     *   detections: [
-     *     {
-     *       cls: "line",
-     *       confidence: 0.79,
-     *       polygon: [x1,y1,x2,y2,x3,y3,x4,y4]
-     *     },
-     *     ...
-     *   ]
-     * }
-     */
+      const topDetection = data.polygons[0];
 
-    // Aquí puedes guardar los resultados para dibujarlos
-    ultimoReporte.value = data;
+      ultimoReporte.value = {
+        defecto: aux.damagesToES(topDetection.class),
+        fecha: new Date().toLocaleString(),
+      };
 
-    statusMessage.value = "Inferencia realizada correctamente";
-    statusColor.value = "success";
+      statusMessage.value = `✓ ${data.count} defecto(s) detectado(s)`;
+      statusColor.value = "success";
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        latestImageUrl.value = e.target.result;
+        // Wait for image to load to get dimensions
+        const img = new Image();
+        img.onload = () => {
+          imageWidth.value = img.naturalWidth;
+          imageHeight.value = img.naturalHeight;
+          console.log("Updated image dimensions:", imageWidth.value, imageHeight.value);
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    } else {
+      detectedPolygons.value = [];
+      statusMessage.value = "No se detectaron defectos";
+      statusColor.value = "info";
+    }
+
     selectedImage.value = null;
-
   } catch (err) {
-    console.error("Error a subir imagen:", err);
-    statusMessage.value = "Error al enviar imagen";
+    console.error("Error completo:", err);
+    statusMessage.value = `Error: ${err.message}`;
     statusColor.value = "error";
   } finally {
     loadingUpload.value = false;
   }
 }
-
 
 onMounted(() => {
   loadItems();
