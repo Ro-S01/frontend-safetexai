@@ -710,7 +710,7 @@ async function uploadImage() {
     console.log("Uploading file:", file.name, file.type, file.size);
 
     const res = await fetch(
-      "https://parliament-advances-plc-copying.trycloudflare.com/infer",
+      "https://oops-pad-definitions-filtering.trycloudflare.com/infer",
       {
         method: "POST",
         body: formData,
